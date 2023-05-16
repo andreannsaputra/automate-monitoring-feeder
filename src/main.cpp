@@ -340,3 +340,71 @@ void Loadcell_Init()
 }
 
 void Calibrate()
+{
+  bool _resume = false;
+  while (_resume == false)
+  {
+    scale.update();
+    while (baca_btn() == 1)
+    {
+      lcd.clear();
+      lcd.setCursor(0, 0);
+      lcd.print("Proses Tare");
+      Serial.println("Proses Kalibrasi");
+      scale.tareNoDelay();
+      delay(2000);
+      bca = 0;
+    }
+    if (scale.getTareStatus() == true)
+    {
+      lcd.setCursor(0, 0);
+      lcd.print("Proses Tare");
+      Serial.println("Tare complete");
+      delay(2000);
+      _resume = true;
+    }
+    lcd.clear();
+    delay(100);
+  }
+
+  lcd.setCursor(0, 0);
+  lcd.print("Kalibrasi 1 kg");
+  Serial.println("simpan benda dengan berat terukur dan masukan berat bendanya");
+  lcd.setCursor(0, 2);
+  lcd.print("Tekan Tombol");
+
+  while (baca_btn() == 0)
+  {
+    baca_btn();
+  }
+  lcd.clear();
+  float known_mass = 1000;
+  scale.refreshDataSet();
+  float newcalValue = scale.getNewCalibration(known_mass);
+
+  lcd.setCursor(0, 0);
+  lcd.print("Faktor= ");
+  lcd.print(newcalValue);
+
+  Serial.print("nilai Calibrate terset ke: ");
+  Serial.println(newcalValue);
+  scale.setCalFactor(newcalValue);
+  delay(500);
+  Serial.println("store nilai faktor Calibrate ke EEPROM ...");
+  EEPROM.put(calVal_addr, newcalValue);
+  Serial.print("nilai Calibrate ");
+  Serial.print(EEPROM.get(calVal_addr, strd_data));
+  Serial.print(" tersimpan ke EEPROM!!!");
+
+  lcd.setCursor(0, 3);
+  lcd.print("Faktor Tersimpan");
+  delay(3000);
+  lcd.clear();
+  lcd.setCursor(0, 0);
+  lcd.print("Kalibrasi Selesai");
+  delay(2000);
+  lcd.clear();
+
+  bca_kal = 0;
+  bca = 0;
+};
